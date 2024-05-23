@@ -1,0 +1,107 @@
+---
+title: "Seurat - Combining Several 10X Runs, Osteosarcoma "
+author: "Sulev Koks"
+date: "2024-04-14"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+In this project, we will combine six 10X Osteosarcoma datasets from the GEO accession GSE162454.
+
+To start, we read in the data and create two `Seurat` objects.
+
+```{r}
+# install.packages("devtools")
+devtools::install_github("immunogenomics/presto")
+```
+
+```{r}
+library(dplyr)
+library(Seurat)
+library(patchwork)
+library(presto)
+```
+```{r load data}
+load("OS_sce1_6_filesUNFILTERED.RData")
+load("OS1_6merged.RData")
+```
+
+```{r}
+sce1f<- CreateSeuratObject(counts = assay(sce1, "counts"), project = "OSscRNA1")
+sce1f
+sce2f<- CreateSeuratObject(counts = assay(sce2, "counts"), project = "OSscRNA2")
+sce2f
+sce3f<- CreateSeuratObject(counts = assay(sce3, "counts"), project = "OSscRNA3")
+sce3f
+sce4f<- CreateSeuratObject(counts = assay(sce4, "counts"), project = "OSscRNA4")
+sce4f
+sce5f<- CreateSeuratObject(counts = assay(sce5, "counts"), project = "OSscRNA5")
+sce5f
+sce6f<- CreateSeuratObject(counts = assay(sce6, "counts"), project = "OSscRNA6")
+sce6f
+```
+
+```{r}
+sce1f[["percent.mt"]] <- PercentageFeatureSet(sce1f, pattern = "^MT-")
+sce2f[["percent.mt"]] <- PercentageFeatureSet(sce2f, pattern = "^MT-")
+sce3f[["percent.mt"]] <- PercentageFeatureSet(sce3f, pattern = "^MT-")
+sce4f[["percent.mt"]] <- PercentageFeatureSet(sce4f, pattern = "^MT-")
+sce5f[["percent.mt"]] <- PercentageFeatureSet(sce5f, pattern = "^MT-")
+sce6f[["percent.mt"]] <- PercentageFeatureSet(sce6f, pattern = "^MT-")
+
+```
+```{r}
+sce1f <- subset(sce1f, subset = nFeature_RNA > 300 & nFeature_RNA < 4500 & percent.mt < 5)
+sce2f <- subset(sce2f, subset = nFeature_RNA > 300 & nFeature_RNA < 4500 & percent.mt < 5)
+sce3f <- subset(sce3f, subset = nFeature_RNA > 300 & nFeature_RNA < 4500 & percent.mt < 5)
+sce4f <- subset(sce4f, subset = nFeature_RNA > 300 & nFeature_RNA < 4500 & percent.mt < 5)
+sce5f <- subset(sce5f, subset = nFeature_RNA > 300 & nFeature_RNA < 4500 & percent.mt < 5)
+sce6f <- subset(sce6f, subset = nFeature_RNA > 300 & nFeature_RNA < 4500 & percent.mt < 5)
+```
+
+Normalise if you like
+
+```{r}
+sce1fn <- NormalizeData(sce1f)
+sce2fn <- NormalizeData(sce2f)
+sce3fn <- NormalizeData(sce3f)
+sce4fn <- NormalizeData(sce4f)
+sce5fn <- NormalizeData(sce5f)
+sce6fn <- NormalizeData(sce6f)
+```
+
+To merge more than two `Seurat` objects, simply pass a vector of multiple `Seurat` objects to the `y` parameter for `merge`.
+
+
+```{r}
+OS1_6merged <- merge(sce1f, y = c(sce2f, sce3f, sce4f, sce5f, sce6f), add.cell.ids = c('OS1', 'OS2', 'OS3', 'OS4', 'OS5', 'OS6'), project = 'OSscRNAmerged')
+OS1_6merged
+```
+```{r}
+head(colnames(OS1_6merged))
+tail(colnames(OS1_6merged))
+unique(sapply(X = strsplit(colnames(OS1_6merged), split = '_'), FUN = '[', 1))
+table(OS1_6merged$orig.ident)
+```
+Cluster 1","Cluster 2","Cluster 3","Cluster 4","Cluster 5","Cluster 6","Cluster 7","Cluster 8","Cluster 9","Cluster 10","Cluster 11", 
+
+OS1_6merged@meta.data[["seurat_annotations"]] <- OS1_6merged@meta.data[["seurat_clusters"]]
+levels(OS1_6merged@meta.data[["seurat_annotations"]]) <- c("Cluster 1","Cluster 2","Cluster 3","Cluster 4","Cluster 5","Cluster 6","Cluster 7","Cluster 8","Cluster 9","Cluster 10","Cluster 11")
+
+
+```{r}
+Layers(OS1_6merged)
+```
+
+```{r}
+LayerData(OS1_6merged)[1:10, 1:15]
+```
+
+```{r save.times, include = TRUE}
+write.csv(x = t(as.data.frame(all_times)), file = "merge_vignette_times.csv")
+```
+
+```{r}
+sessionInfo()
+```
