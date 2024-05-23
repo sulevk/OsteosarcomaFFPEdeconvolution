@@ -9,6 +9,11 @@ editor_options:
 
 In this project, we will combine six 10X Osteosarcoma datasets from the GEO accession GSE162454.
 
+This work is based on:
+
+Hao et al. Dictionary learning for integrative, multimodal and scalable single-cell analysis.
+  Nature Biotechnology (2023) [Seurat V5]
+
 To start, we read in the data and create two `Seurat` objects.
 
 ```{r}
@@ -41,6 +46,10 @@ sce5f
 sce6f<- CreateSeuratObject(counts = assay(sce6, "counts"), project = "OSscRNA6")
 sce6f
 ```
+
+## Filter out mitochondria and outliers
+
+Keep MT % below five and features between 300 and 4500.
 
 ```{r}
 sce1f[["percent.mt"]] <- PercentageFeatureSet(sce1f, pattern = "^MT-")
@@ -84,11 +93,6 @@ tail(colnames(OS1_6merged))
 unique(sapply(X = strsplit(colnames(OS1_6merged), split = '_'), FUN = '[', 1))
 table(OS1_6merged$orig.ident)
 ```
-Cluster 1","Cluster 2","Cluster 3","Cluster 4","Cluster 5","Cluster 6","Cluster 7","Cluster 8","Cluster 9","Cluster 10","Cluster 11", 
-
-OS1_6merged@meta.data[["seurat_annotations"]] <- OS1_6merged@meta.data[["seurat_clusters"]]
-levels(OS1_6merged@meta.data[["seurat_annotations"]]) <- c("Cluster 1","Cluster 2","Cluster 3","Cluster 4","Cluster 5","Cluster 6","Cluster 7","Cluster 8","Cluster 9","Cluster 10","Cluster 11")
-
 
 ```{r}
 Layers(OS1_6merged)
