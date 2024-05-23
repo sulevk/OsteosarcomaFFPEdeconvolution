@@ -1,2 +1,2 @@
-# myrepo1
-I'm making changes from RStudio.
+# Osteosarcoma FFPE deconvolution
+This page describes how to do deconvolution analysis on bulk RNAseq data from FFPE samples.
